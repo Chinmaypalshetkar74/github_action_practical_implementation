@@ -1,0 +1,49 @@
+# This workflow installs Python dependencies, runs tests, and lints with Python 3.8.
+# For more info: https://docs.github.com/en/actions/automating-builds-and-testing/building-and-testing-python
+
+name: Python CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Check out repository
+        uses: actions/checkout@v4  # Updated to latest version
+
+      # Step 2: Set up Python
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5  # Updated to latest
+        with:
+          python-version: "3.8"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # Step 4: Lint with flake8
+      - name: Lint with flake8
+        run: |
+          # Stop on syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Treat errors as warnings; GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      # Step 5: Test with pytest
+      - name: Test with pytest
+        run: |
+          pytest
+
